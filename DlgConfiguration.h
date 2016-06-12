@@ -15,6 +15,9 @@ public:
     explicit DlgConfiguration(QWidget *parent = 0);
     ~DlgConfiguration();
 
+private slots:
+    void on_pbtnAbputQt_clicked();
+
 private:
     Ui::DlgConfiguration *ui;
 };
