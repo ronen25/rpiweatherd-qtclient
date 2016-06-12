@@ -15,15 +15,15 @@ TEMPLATE = app
 SOURCES += main.cpp\
         WndMain.cpp \
     IndexesDisplay.cpp \
-    IndexesUtils.cpp \
     MeasureDisplay.cpp \
-    DlgConfiguration.cpp
+    DlgConfiguration.cpp \
+    Utils.cpp
 
 HEADERS  += WndMain.h \
     IndexesDisplay.h \
-    IndexesUtils.h \
     MeasureDisplay.h \
-    DlgConfiguration.h
+    DlgConfiguration.h \
+    Utils.h
 
 FORMS    += WndMain.ui \
     MeasureDisplay.ui \

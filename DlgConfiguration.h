@@ -2,6 +2,9 @@
 #define DLGCONFIGURATION_H
 
 #include <QDialog>
+#include <QSettings>
+
+#define RPIWEATHERD_DEFAULT_PORT 6005
 
 namespace Ui {
 class DlgConfiguration;
@@ -19,7 +22,12 @@ private slots:
     void on_pbtnAbputQt_clicked();
 
 private:
+    // Properties
     Ui::DlgConfiguration *ui;
+
+    // Methods
+    void loadConfiguration(void);
+    void saveConfiguration(void);
 };
 
 #endif // DLGCONFIGURATION_H

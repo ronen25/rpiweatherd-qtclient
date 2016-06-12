@@ -16,7 +16,7 @@
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout" rowstretch="0,0,1,0,0" columnstretch="1,1,1" rowminimumheight="0,0,200,0,0" columnminimumwidth="0,200,0">
     <item row="2" column="1">
-     <widget class="QWidget" name="wgMeasureDisplay" native="true"/>
+     <widget class="MeasureDisplay" name="wgMeasureDisplay" native="true"/>
     </item>
     <item row="2" column="2">
      <spacer name="horizontalSpacer_2">
@@ -181,6 +181,12 @@
    <class>IndexesDisplay</class>
    <extends>QWidget</extends>
    <header>IndexesDisplay.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>MeasureDisplay</class>
+   <extends>QWidget</extends>
+   <header>MeasureDisplay.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

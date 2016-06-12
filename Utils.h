@@ -3,7 +3,7 @@
 
 #include <cmath>
 
-class IndexesUtils {
+class Utils {
 public:
     static double calculateHumidex(float temp, float humid);
     static double calculateHeatIndex(float temp, float humid);

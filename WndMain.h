@@ -2,8 +2,12 @@
 #define WNDMAIN_H
 
 #include <QMainWindow>
+#include <QStyle>
+#include <QMessageBox>
 
+#include "DlgConfiguration.h"
 #include "IndexesDisplay.h"
+#include "MeasureDisplay.h"
 
 namespace Ui {
 class WndMain;
@@ -19,6 +23,8 @@ public:
 
 private slots:
     void on_horizontalSlider_valueChanged(int value);
+
+    void on_pbtnSettings_clicked();
 
 private:
     Ui::WndMain *ui;

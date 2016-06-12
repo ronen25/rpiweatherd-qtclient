@@ -1,6 +1,6 @@
-#include "IndexesUtils.h"
+#include "Utils.h"
 
-double IndexesUtils::calculateHumidex(float temp, float humid) {
+double Utils::calculateHumidex(float temp, float humid) {
     double e;
 
     // Vapor pressure
@@ -11,7 +11,7 @@ double IndexesUtils::calculateHumidex(float temp, float humid) {
 }
 
 // Source: http://www.wpc.ncep.noaa.gov/html/heatindex_equation.shtml
-double IndexesUtils::calculateHeatIndex(float temp, float humid) {
+double Utils::calculateHeatIndex(float temp, float humid) {
     double heatIndex = 0;
     double adjustment = 0;
 
