@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>269</width>
-    <height>184</height>
+    <height>186</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -35,7 +35,7 @@
       </font>
      </property>
      <property name="text">
-      <string>30 °C</string>
+      <string>--</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -51,7 +51,7 @@
       </font>
      </property>
      <property name="text">
-      <string>(Feels Like °C)</string>
+      <string>--</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -61,7 +61,7 @@
    <item>
     <widget class="QLabel" name="lblHumidity">
      <property name="text">
-      <string>Humidity: {}%</string>
+      <string>--</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>

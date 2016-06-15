@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -17,13 +17,16 @@ SOURCES += main.cpp\
     IndexesDisplay.cpp \
     MeasureDisplay.cpp \
     DlgConfiguration.cpp \
-    Utils.cpp
+    Utils.cpp \
+    RequestManager.cpp
 
 HEADERS  += WndMain.h \
     IndexesDisplay.h \
     MeasureDisplay.h \
     DlgConfiguration.h \
-    Utils.h
+    Utils.h \
+    ConfigurationConstants.h \
+    RequestManager.h
 
 FORMS    += WndMain.ui \
     MeasureDisplay.ui \

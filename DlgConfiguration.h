@@ -3,8 +3,9 @@
 
 #include <QDialog>
 #include <QSettings>
+#include <QMessageBox>
 
-#define RPIWEATHERD_DEFAULT_PORT 6005
+#include "ConfigurationConstants.h"
 
 namespace Ui {
 class DlgConfiguration;
@@ -20,6 +21,10 @@ public:
 
 private slots:
     void on_pbtnAbputQt_clicked();
+
+    void on_buttonBox_accepted();
+
+    void on_buttonBox_rejected();
 
 private:
     // Properties

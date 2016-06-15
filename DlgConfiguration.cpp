@@ -29,21 +29,58 @@ void DlgConfiguration::loadConfiguration() {
     QSettings settings("RonenL", "rpiweatherd-qtclient");
 
     // Load server details
-    ui->lnServerHostname->setText(settings.value("server_ip", ""));
-    ui->spnPort->setValue(settings.value("server_port", RPIWEATHERD_DEFAULT_PORT));
+    ui->lnServerHostname->setText(settings.value(CONFIG_SERVER_IP, "").toString());
+    ui->spnPort->setValue(settings.value(CONFIG_SERVER_PORT, RPIWEATHERD_DEFAULT_PORT).toInt());
 
     // Load measurement unit
-    QString unit = settings.value("unit", "");
+    QString unit = settings.value(CONFIG_PREFERRED_UNIT, "").toString();
     if (unit == "")
         ui->radUnitsUseServer->setChecked(true);
-    else if (unit == "metric")
+    else if (unit == RPIWEATHERD_UNITS_METRIC)
         ui->radUnitsMetric->setChecked(true);
-    else if (unit == "imperial")
+    else if (unit == RPIWEATHERD_UNITS_IMPERIAL)
         ui->radUnitsImperial->setChecked(true);
 
     // Show humidity
-    ui->chkShowHumidity->setChecked(settings.value("show_humidity", true));
+    ui->chkShowHumidity->setChecked(settings.value(CONFIG_SHOW_HUMIDITY, true).toBool());
 }
 
 void DlgConfiguration::saveConfiguration() {
+    // QSettings instance
+    QSettings settings("RonenL", "rpiweatherd-qtclient");
+
+    // Set first-time configuration boolean to true, just in case.
+    settings.setValue(CONFIG_FIRST_CONFIG, true);
+
+    // Set server hostname
+    if (!ui->lnServerHostname->text().isEmpty())
+        settings.setValue(CONFIG_SERVER_IP, ui->lnServerHostname->text());
+    else
+        QMessageBox::critical(this, tr("Server Hostname Missing"),
+                              tr("Server hostname must not be empty."),
+                              QMessageBox::Ok);
+
+    // Set server port
+    settings.setValue(CONFIG_SERVER_PORT, ui->spnPort->value());
+
+    // Set measurement unit
+    if (ui->radUnitsUseServer->isChecked())
+        settings.setValue(CONFIG_PREFERRED_UNIT, "");
+    else if (ui->radUnitsImperial->isChecked())
+        settings.setValue(CONFIG_PREFERRED_UNIT, RPIWEATHERD_UNITS_IMPERIAL);
+    else if (ui->radUnitsMetric->isChecked())
+        settings.setValue(CONFIG_PREFERRED_UNIT, RPIWEATHERD_UNITS_METRIC);
+
+    // Set show humidity
+    settings.setValue(CONFIG_SHOW_HUMIDITY, ui->chkShowHumidity->isChecked());
+}
+
+void DlgConfiguration::on_buttonBox_accepted()
+{
+    saveConfiguration();
+}
+
+void DlgConfiguration::on_buttonBox_rejected()
+{
+    close();
 }
