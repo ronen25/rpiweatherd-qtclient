@@ -7,6 +7,9 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QThread>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonValue>
 
 #include "ConfigurationConstants.h"
 
@@ -23,6 +26,9 @@ public:
     QNetworkReply *getConfiguration(void);
     void getCurrentMeasurement(void);
     void getLocationCoordinates(QString location);
+
+    // Utility methods
+    QJsonObject readJsonObject(QNetworkReply *reply);
 
 signals:
     void configRequestFinished(QNetworkReply *reply);

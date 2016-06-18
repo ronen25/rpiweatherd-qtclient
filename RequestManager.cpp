@@ -41,6 +41,24 @@ void RequestManager::getLocationCoordinates(QString location) {
     _netManager->get(QNetworkRequest(QUrl(request)));
 }
 
+QJsonObject RequestManager::readJsonObject(QNetworkReply *reply) {
+    if (reply->error() == QNetworkReply::NoError) {
+        // Get reply and jsonify it
+        QString strReply = QString(reply->readAll());
+        QJsonDocument jsonDoc = QJsonDocument::fromJson(strReply.toUtf8());
+        QJsonObject mainObject = jsonDoc.object();
+
+        // Check error code
+        int errcode = mainObject["errcode"].toInt();
+        if (errcode != 0)
+            return QJsonObject();
+        else
+            return mainObject;
+    }
+    else
+        return QJsonObject();
+}
+
 // TODO: Put in constants
 void RequestManager::replyFinished(QNetworkReply *reply) {
     // Get reply URL path.

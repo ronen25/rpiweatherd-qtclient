@@ -25,27 +25,8 @@ WndMain::WndMain(QWidget *parent) :
         QObject::connect(connManager, &RequestManager::currentRequestFinished,
                          this, &WndMain::currentReplyFinished);
 
-        // Get configuration
-        QEventLoop loop;
-        QNetworkReply *configReply = connManager->getConfiguration();
-        QObject::connect(configReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-        loop.exec();
-        QObject::disconnect(configReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-
-        // Getting the configuration should work. If not, do not do anything else.
-        if (configReply->error() != QNetworkReply::NoError) {
-            QMessageBox::critical(this, tr("Configuration Error"), tr("Can not proceed."),
-                                  QMessageBox::Ok);
-            return;
-        }
-
-        // Get current measurement
-        connManager->getCurrentMeasurement();
-
-        // Synchronously on the second thread:
-        // 2. Get location - store in cache
-        // 2. Get sunset-sundown times
-        // 2. Set background colors
+        // Initiate procedure
+        fetchProcedure();
     }
 }
 
@@ -54,26 +35,43 @@ WndMain::~WndMain()
     delete ui;
 }
 
+void WndMain::fetchProcedure() {
+    // Get configuration
+    QEventLoop loop;
+    QNetworkReply *configReply = connManager->getConfiguration();
+    QObject::connect(configReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    loop.exec();
+    QObject::disconnect(configReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+
+    // Getting the configuration should work. If not, do not do anything else.
+    if (configReply->error() != QNetworkReply::NoError) {
+        QMessageBox::critical(this, tr("Configuration Error"), tr("Can not proceed."),
+                              QMessageBox::Ok);
+        return;
+    }
+
+    // Get current measurement
+    connManager->getCurrentMeasurement();
+
+    // Synchronously on the second thread:
+    // 2. Get location - store in cache
+    // 2. Get sunset-sundown times
+    // 2. Set background colors
+}
+
 void WndMain::showServerErrorMessage(int retcode, QString msg) {
     QMessageBox::critical(this, tr("Server Error"), tr("Server error %1:\n%2")
                           .arg(retcode).arg(msg), QMessageBox::Ok);
 }
 
 void WndMain::configReplyFinished(QNetworkReply *reply) {
-    // Check reply status
-    if (reply->error() == QNetworkReply::NoError) {
-        // Get reply and jsonify it
-        QString strReply = QString(reply->readAll());
-        QJsonDocument jsonDoc = QJsonDocument::fromJson(strReply.toUtf8());
-        QJsonObject mainObject = jsonDoc.object();
-        QJsonObject results = mainObject["results"].toObject();
+    // Read the json object
+    QJsonObject jsonObject = connManager->readJsonObject(reply);
 
-        // Check error code
-        int errcode = mainObject["errcode"].toInt();
-        if (errcode != 0) {
-            showServerErrorMessage(errcode, mainObject["errmsg"].toString());
-            return;
-        }
+    // Check reply status
+    if (!jsonObject.empty()) {
+        // Get reply and jsonify it
+        QJsonObject results = jsonObject["results"].toObject();
 
         // Save configuration
         ConfigurationManager::instance().setValue(CONFIG_SERVER_UNIT, results["units"].toString());
@@ -94,32 +92,21 @@ void WndMain::configReplyFinished(QNetworkReply *reply) {
 }
 
 void WndMain::currentReplyFinished(QNetworkReply *reply) {
+    // Read the json object
+    QJsonObject jsonObject = connManager->readJsonObject(reply);
+
     // Check reply status
-    if (reply->error() == QNetworkReply::NoError) {
+    if (!jsonObject.empty()) {
         // Get reply and jsonify it
-        QString strReply = QString(reply->readAll());
-        QJsonDocument jsonDoc = QJsonDocument::fromJson(strReply.toUtf8());
-        QJsonObject mainObject = jsonDoc.object();
-        QJsonObject results = mainObject["-1"].toObject();
+        QJsonObject results = jsonObject["-1"].toObject();
         float temperature = results["temperature"].toDouble(),
               humidity = results["humidity"].toDouble();
         char mUnit;
 
-        // Check error code
-        int errcode = mainObject["errcode"].toInt();
-        if (errcode != 0) {
-            showServerErrorMessage(errcode, mainObject["errmsg"].toString());
-            return;
-        }
-
-        // Get temperature both in F and C.
-        // This is needed to calculate the heat index and the humidex, respectivly.
+        // Get temperature in Celsius, for humidex calculations.
         float tempC = Utils::convertTemperatureIfNeeded(temperature,
             ConfigurationManager::instance().value(CONFIG_SERVER_UNIT).toString(),
             QString(RPIWEATHERD_UNITS_METRIC));
-        float tempF = Utils::convertTemperatureIfNeeded(temperature,
-            ConfigurationManager::instance().value(CONFIG_SERVER_UNIT).toString(),
-            QString(RPIWEATHERD_UNITS_IMPERIAL));
 
         // Get unit to use.
         QString strUnit = ConfigurationManager::instance().value(CONFIG_PREFERRED_UNIT).toString();

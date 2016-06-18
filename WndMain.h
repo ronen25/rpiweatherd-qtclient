@@ -6,9 +6,7 @@
 #include <QMessageBox>
 #include <QNetworkReply>
 #include <QDebug>
-#include <QJsonDocument>
 #include <QJsonObject>
-#include <QJsonArray>
 #include <QEventLoop>
 
 #include "ConfigurationManager.h"
@@ -31,6 +29,9 @@ public:
 
     // Dstr.
     ~WndMain();
+
+    // Utility methods
+    void fetchProcedure(void);
 
     // Helper methods
     void showServerErrorMessage(int retcode, QString msg);
