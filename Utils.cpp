@@ -10,34 +10,69 @@ double Utils::calculateHumidex(float temp, float humid) {
     return humidex;
 }
 
-// Source: http://www.wpc.ncep.noaa.gov/html/heatindex_equation.shtml
+// Source: http://www.engineeringtoolbox.com/heat-index-d_935.html
 double Utils::calculateHeatIndex(float temp, float humid) {
-    double heatIndex = 0;
-    double adjustment = 0;
+    // Check if we need conversion to farenheit
+    float tempF = Utils::convertTemperatureIfNeeded(temp,
+        ConfigurationManager::instance().value(CONFIG_PREFERRED_UNIT).toString(),
+        QString(RPIWEATHERD_UNITS_IMPERIAL));
 
-    // Calculate first using the simple formula.
-    heatIndex = 0.5 * (temp + 61.0 + ((temp - 68.0) * 1.2) + (humid * 0.094));
+    // Calculation only applies for tempF > 57 F
+    if (tempF < 57)
+        return temp; // No conversion
 
-    // Check if the full equation is needed
-    // If not, return average of this and the temperature.
-    if (heatIndex < 80)
-        return heatIndex + temp / 2;
+    // Calculation constants
+    const double c1 = -42.739;
+    const double c2 = 2.04901523;
+    const double c3 = 10.14333127;
+    const double c4 = 0.22475541;
+    const double c5 = 0.00683783;
+    const double c6 = 0.05481717;
+    const double c7 = 0.00122874;
+    const double c8 = 0.00085282;
+    const double c9 = 0.00000199;
 
-    // Continue calculating.
-    // Calculate heat index
-    heatIndex = -42.379 + 2.04901523 * temp + 10.14333127 * humid - 0.22475541 * temp * humid -
-            0.00683783 * temp * temp - 0.05481717 * humid * humid + 0.00122874 * temp * temp *
-            humid + 0.00085282 * temp * humid * humid - 0.00000199 * temp * temp * humid * humid;
+    // Calculate and round to two digits after the decimal point.
+    double result = (c1 + c2 * tempF + c3 * humid - c4 * tempF * humid - c5 * tempF * tempF
+                    - c6 * humid * humid + c7 * tempF * tempF * humid + c8 * tempF * humid * humid -
+                    c9 * tempF * tempF * humid * humid);
+    result = round(result * 100) / 100;
 
-    // Check if an adjustment is needed
-    if (humid < 13 && (temp >= 80 && temp <= 112))
-        adjustment = ((13 - humid) / 4) * sqrt((17 - std::abs(temp - 95.0)) / 17);
-    else if (humid > 85 && (temp >= 80 && temp <= 87))
-        adjustment = ((humid - 85) / 10) * ((87 - temp) / 5);
+    // Convert back and return
+    return Utils::convertTemperatureIfNeeded(result, QString(RPIWEATHERD_UNITS_IMPERIAL),
+        ConfigurationManager::instance().value(CONFIG_PREFERRED_UNIT).toString());
+}
 
-    // Add adjustments if needed
-    heatIndex += adjustment;
+double Utils::convertTemperatureIfNeeded(float temp) {
+    // Get source and destination units from configuration
+    QString sourceUnit = ConfigurationManager::instance().value(CONFIG_SERVER_UNIT).toString();
+    QString targetUnit = ConfigurationManager::instance().value(CONFIG_PREFERRED_UNIT).toString();
 
-    // Return it
-    return heatIndex;
+    return Utils::convertTemperatureIfNeeded(temp, sourceUnit, targetUnit);
+}
+
+double Utils::convertTemperatureIfNeeded(float temp, QString sourceUnit, QString targetUnit) {
+    // If the source and the destination unit are the same, do no conversion.
+    if (sourceUnit == targetUnit)
+        return temp;
+
+    // Now perform conversion.
+    if (sourceUnit == RPIWEATHERD_UNITS_METRIC && targetUnit == RPIWEATHERD_UNITS_IMPERIAL)
+        return temp * 9.0 / 5.0 + 32.0;
+    else if (sourceUnit == RPIWEATHERD_UNITS_IMPERIAL && targetUnit == RPIWEATHERD_UNITS_METRIC)
+        return (temp - 32.0) / 1.8;
+    else {
+        qDebug() << "Unknown conversion from scale '" << sourceUnit << "' to '"
+                 << targetUnit << "'";
+        return temp;
+    }
+}
+
+char Utils::unitDescriptionToUnitChar(QString desc) {
+    if (desc == RPIWEATHERD_UNITS_METRIC)
+        return 'c';
+    else if (desc == RPIWEATHERD_UNITS_IMPERIAL)
+        return 'f';
+    else
+        return '?';
 }

@@ -6,6 +6,7 @@
 #include <QMessageBox>
 
 #include "ConfigurationConstants.h"
+#include "ConfigurationManager.h"
 
 namespace Ui {
 class DlgConfiguration;

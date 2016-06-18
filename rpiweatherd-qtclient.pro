@@ -18,7 +18,8 @@ SOURCES += main.cpp\
     MeasureDisplay.cpp \
     DlgConfiguration.cpp \
     Utils.cpp \
-    RequestManager.cpp
+    RequestManager.cpp \
+    ConfigurationManager.cpp
 
 HEADERS  += WndMain.h \
     IndexesDisplay.h \
@@ -26,7 +27,8 @@ HEADERS  += WndMain.h \
     DlgConfiguration.h \
     Utils.h \
     ConfigurationConstants.h \
-    RequestManager.h
+    RequestManager.h \
+    ConfigurationManager.h
 
 FORMS    += WndMain.ui \
     MeasureDisplay.ui \

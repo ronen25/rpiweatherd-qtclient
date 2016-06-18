@@ -33,8 +33,11 @@ void DlgConfiguration::loadConfiguration() {
     ui->spnPort->setValue(settings.value(CONFIG_SERVER_PORT, RPIWEATHERD_DEFAULT_PORT).toInt());
 
     // Load measurement unit
-    QString unit = settings.value(CONFIG_PREFERRED_UNIT, "").toString();
-    if (unit == "")
+    QString unit = settings.value(CONFIG_PREFERRED_UNIT,
+                                  settings.value(CONFIG_SERVER_UNIT)).toString();
+    QString serverUnit = settings.value(CONFIG_SERVER_UNIT).toString();
+
+    if (serverUnit == unit)
         ui->radUnitsUseServer->setChecked(true);
     else if (unit == RPIWEATHERD_UNITS_METRIC)
         ui->radUnitsMetric->setChecked(true);
@@ -65,7 +68,7 @@ void DlgConfiguration::saveConfiguration() {
 
     // Set measurement unit
     if (ui->radUnitsUseServer->isChecked())
-        settings.setValue(CONFIG_PREFERRED_UNIT, "");
+        settings.setValue(CONFIG_PREFERRED_UNIT, settings.value(CONFIG_SERVER_UNIT));
     else if (ui->radUnitsImperial->isChecked())
         settings.setValue(CONFIG_PREFERRED_UNIT, RPIWEATHERD_UNITS_IMPERIAL);
     else if (ui->radUnitsMetric->isChecked())

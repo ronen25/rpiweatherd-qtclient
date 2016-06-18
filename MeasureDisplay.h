@@ -5,6 +5,8 @@
 #include <QDebug>
 #include <QDate>
 
+#include "Utils.h"
+
 namespace Ui {
 class MeasureDisplay;
 }
@@ -37,7 +39,7 @@ private:
 
     // Constants
     const QString MEASUREMENT_DISPLAY_TEMPLATE = tr("%1 °%2");
-    const QString HUMIDITY_DISPLAY_TEMPLATE = tr("Humidity: %1");
+    const QString HUMIDITY_DISPLAY_TEMPLATE = tr("Humidity: %1% ");
     const QString FEELS_LIKE_DISPLAY_TEMPLATE = tr("(Feels like %1 °%2)");
 };
 

@@ -6,6 +6,7 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
+#include <QThread>
 
 #include "ConfigurationConstants.h"
 
@@ -19,7 +20,8 @@ public:
     RequestManager(QString hostName, int port, QObject *parent = 0);
 
     // Methods
-    void getConfiguration(void);
+    QNetworkReply *getConfiguration(void);
+    void getCurrentMeasurement(void);
     void getLocationCoordinates(QString location);
 
 signals:
@@ -31,6 +33,7 @@ public slots:
     void replyFinished(QNetworkReply *reply);
 
 private:
+    // Properties
     QString _hostName;
     int _port;
     QNetworkAccessManager *_netManager;

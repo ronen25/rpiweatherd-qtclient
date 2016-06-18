@@ -11,6 +11,7 @@
 #include <QJsonArray>
 #include <QEventLoop>
 
+#include "ConfigurationManager.h"
 #include "DlgConfiguration.h"
 #include "IndexesDisplay.h"
 #include "MeasureDisplay.h"
@@ -25,8 +26,14 @@ class WndMain : public QMainWindow
     Q_OBJECT
 
 public:
+    // Cnstr.
     explicit WndMain(QWidget *parent = 0);
+
+    // Dstr.
     ~WndMain();
+
+    // Helper methods
+    void showServerErrorMessage(int retcode, QString msg);
 
 private slots:
     void configReplyFinished(QNetworkReply *reply);
@@ -38,7 +45,6 @@ private slots:
 private:
     Ui::WndMain *ui;
     RequestManager *connManager;
-    QSettings _settings;
     bool _flag;
 };
 

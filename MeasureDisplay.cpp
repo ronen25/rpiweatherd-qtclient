@@ -9,6 +9,10 @@ MeasureDisplay::MeasureDisplay(QWidget *parent) :
 
     // Set size policies
     ui->lblMeasurement->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+
+    // Check if we need to display humidity
+    ui->lblHumidity->setVisible(
+                ConfigurationManager::instance().value(CONFIG_SHOW_HUMIDITY).toBool());
 }
 
 MeasureDisplay::~MeasureDisplay()
@@ -38,11 +42,15 @@ void MeasureDisplay::setMeasurementDetails(QDate date, float temperature, char u
 
     // Set texts
     ui->lblDate->setText(_measureDate.toString("dddd, dd MMMM yyyy"));
-    ui->lblMeasurement->setText(MEASUREMENT_DISPLAY_TEMPLATE.arg(_temp,
+    ui->lblMeasurement->setText(MEASUREMENT_DISPLAY_TEMPLATE.arg(_temp).arg(
                                                                  QChar(unit).toUpper().toLatin1()));
     ui->lblHumidity->setText(HUMIDITY_DISPLAY_TEMPLATE.arg(_humid));
-    ui->lblFeelsLike->setText(FEELS_LIKE_DISPLAY_TEMPLATE.arg(_temp,
-                                                              QChar(unit).toUpper().toLatin1()));
+    ui->lblFeelsLike->setText(FEELS_LIKE_DISPLAY_TEMPLATE.arg(
+                                  Utils::calculateHeatIndex(temperature, humidity)).arg(
+                                  QChar(unit).toUpper().toLatin1()));
+
+    // Resize newly-created text
+    resizeEvent(nullptr);
 }
 
 void MeasureDisplay::resizeEvent(QResizeEvent *event) {
