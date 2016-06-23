@@ -76,3 +76,9 @@ char Utils::unitDescriptionToUnitChar(QString desc) {
     else
         return '?';
 }
+
+QString Utils::buildCoordinatesString(QString location, double lat, double lng) {
+    QString ret = "%1;%2;%3";
+
+    return ret.arg(location).arg(lat).arg(lng);
+}

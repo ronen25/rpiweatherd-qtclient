@@ -21,24 +21,41 @@ QNetworkReply *RequestManager::getConfiguration(void) {
     return _netManager->get(QNetworkRequest(QUrl(request)));
 }
 
-void RequestManager::getCurrentMeasurement() {
+QNetworkReply *RequestManager::getCurrentMeasurement(void) {
     // Format the request
     QString request = QString(GET_REQUEST_TEMPLATE).arg(_hostName).arg(_port).arg("current");
     qDebug() << "Doing request: " << request;
 
     // Launch request.
     // Upon finishing the request, the correct signal will be emitted.
-    _netManager->get(QNetworkRequest(QUrl(request)));
+    return _netManager->get(QNetworkRequest(QUrl(request)));
 }
 
-void RequestManager::getLocationCoordinates(QString location) {
+QNetworkReply *RequestManager::getLocationCoordinates(void) {
     // Format the request
-    QString request = QString(GET_LOCATION_TEMPLATE).arg(location);
+    QString request = QString(GET_LOCATION_TEMPLATE).arg(
+                ConfigurationManager::instance().value(CONFIG_MEASURE_LOCATION).toString());
     qDebug() << "Doing request: " << request;
 
     // Launch request.
     // Upon finishing the request, the correct signal will be emitted.
-    _netManager->get(QNetworkRequest(QUrl(request)));
+    return _netManager->get(QNetworkRequest(QUrl(request)));
+}
+
+QNetworkReply *RequestManager::getSunsetSunriseTimes(void) {
+    // Parse location string
+    QString locationString =
+            ConfigurationManager::instance().value(CONFIG_LOCATION_COORDINATES).toString();
+    QStringList locationParts = locationString.split(';');
+    QString lat = locationParts[1], lng = locationParts[2];
+
+    // Format the request
+    QString request = QString(GET_SUNSET_SUNRISE_TEMPLATE).arg(lat).arg(lng);
+    qDebug() << "Doing request: " << request;
+
+    // Launch request.
+    // Upon finishing the request, the correct signal will be emitted.
+    return _netManager->get(QNetworkRequest(QUrl(request)));
 }
 
 QJsonObject RequestManager::readJsonObject(QNetworkReply *reply) {
@@ -70,4 +87,8 @@ void RequestManager::replyFinished(QNetworkReply *reply) {
         emit currentRequestFinished(reply);
     else if (urlPath == "mapsapigeocodejson")
         emit locationCoordinatesRequestFinished(reply);
+    else if (urlPath == "json") // YES, I KNOW IT'S UNCLEAR! TODO: Fix this.
+        emit sunsetSunriseTimesRequestFinished(reply);
+    else
+        qDebug() << urlPath;
 }

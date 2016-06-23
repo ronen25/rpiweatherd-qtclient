@@ -22,6 +22,8 @@ public:
     static double convertTemperatureIfNeeded(float temp, QString sourceUnit, QString targetUnit);
 
     static char unitDescriptionToUnitChar(QString desc);
+
+    static QString buildCoordinatesString(QString location, double lat, double lng);
 };
 
 #endif // INDEXESUTILS_H

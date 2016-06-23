@@ -32,6 +32,17 @@ QDate MeasureDisplay::dateDisplayed() const {
     return _measureDate;
 }
 
+void MeasureDisplay::resetState() {
+    // Reset all texts
+    ui->lblDate->setText("--");
+    ui->lblFeelsLike->setText("--");
+    ui->lblHumidity->setText("--");
+    ui->lblMeasurement->setText("--");
+
+    // Resize newly-created text
+    resizeEvent(nullptr);
+}
+
 void MeasureDisplay::setMeasurementDetails(QDate date, float temperature, char unit,
                                            float humidity) {
     // Set all details

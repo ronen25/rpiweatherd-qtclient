@@ -24,6 +24,8 @@ public:
     float humidityDisplayed(void) const;
     QDate dateDisplayed(void) const;
 
+    void resetState(void);
+
 public slots:
     // Setters for all properties
     void setMeasurementDetails(QDate date, float temperature, char unit, float humidity);

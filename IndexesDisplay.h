@@ -7,8 +7,10 @@
 #include <QPainter>
 #include <QDebug>
 
-class IndexesDisplay : public QWidget
-{
+// Constants
+#define NO_HUMIDEX_VALUE -1
+
+class IndexesDisplay : public QWidget {
     Q_OBJECT
 public:
     explicit IndexesDisplay(QWidget *parent = 0);
@@ -18,6 +20,7 @@ public:
 
 public slots:
     void setValue(int value);
+    void resetState(void);
 
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;

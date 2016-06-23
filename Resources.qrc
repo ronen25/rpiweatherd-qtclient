@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/maps">
+        <file>res/SkyColorMap.png</file>
+        <file>res/SunColorMap.png</file>
+    </qresource>
+</RCC>

@@ -19,7 +19,8 @@ SOURCES += main.cpp\
     DlgConfiguration.cpp \
     Utils.cpp \
     RequestManager.cpp \
-    ConfigurationManager.cpp
+    ConfigurationManager.cpp \
+    PhaseImageMap.cpp
 
 HEADERS  += WndMain.h \
     IndexesDisplay.h \
@@ -28,7 +29,8 @@ HEADERS  += WndMain.h \
     Utils.h \
     ConfigurationConstants.h \
     RequestManager.h \
-    ConfigurationManager.h
+    ConfigurationManager.h \
+    PhaseImageMap.h
 
 FORMS    += WndMain.ui \
     MeasureDisplay.ui \
@@ -42,3 +44,6 @@ VERSION = 1.0.0
 
 # Define the preprocessor macro to get the application version in our application.
 DEFINES += APPLICATION_VERSION=\\\"$$VERSION\\\"
+
+RESOURCES += \
+    Resources.qrc

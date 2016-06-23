@@ -26,7 +26,10 @@ void DlgConfiguration::on_pbtnAbputQt_clicked()
 
 void DlgConfiguration::loadConfiguration() {
     // QSettings instance
-    QSettings settings("RonenL", "rpiweatherd-qtclient");
+    QSettings &settings = ConfigurationManager::instance().settings();
+
+    // Sync
+    settings.sync();
 
     // Load server details
     ui->lnServerHostname->setText(settings.value(CONFIG_SERVER_IP, "").toString());
@@ -50,7 +53,7 @@ void DlgConfiguration::loadConfiguration() {
 
 void DlgConfiguration::saveConfiguration() {
     // QSettings instance
-    QSettings settings("RonenL", "rpiweatherd-qtclient");
+    QSettings &settings = ConfigurationManager::instance().settings();
 
     // Set first-time configuration boolean to true, just in case.
     settings.setValue(CONFIG_FIRST_CONFIG, true);
@@ -76,6 +79,9 @@ void DlgConfiguration::saveConfiguration() {
 
     // Set show humidity
     settings.setValue(CONFIG_SHOW_HUMIDITY, ui->chkShowHumidity->isChecked());
+
+    // Sync
+    settings.sync();
 }
 
 void DlgConfiguration::on_buttonBox_accepted()

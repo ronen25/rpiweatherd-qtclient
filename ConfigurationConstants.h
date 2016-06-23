@@ -9,6 +9,9 @@
 #define CONFIG_SHOW_HUMIDITY "show_humidity"
 #define CONFIG_SERVER_UNIT "server_unit"
 #define CONFIG_MEASURE_LOCATION "measure_location"
+#define CONFIG_LOCATION_COORDINATES "location_coords"
+#define CONFIG_SUNRISE_TIME "sunrise_time"
+#define CONFIG_SUNSET_TIME "sunset_time"
 
 // Configuration values
 #define RPIWEATHERD_DEFAULT_PORT 6005

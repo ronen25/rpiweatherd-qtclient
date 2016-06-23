@@ -3,7 +3,8 @@
 
 WndMain::WndMain(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::WndMain)
+    ui(new Ui::WndMain),
+    _locationChanged(false)
 {
     ui->setupUi(this);
 
@@ -24,6 +25,10 @@ WndMain::WndMain(QWidget *parent) :
                          this, &WndMain::configReplyFinished);
         QObject::connect(connManager, &RequestManager::currentRequestFinished,
                          this, &WndMain::currentReplyFinished);
+        QObject::connect(connManager, &RequestManager::locationCoordinatesRequestFinished,
+                         this, &WndMain::locationCoordinatesReplyFinished);
+        QObject::connect(connManager, &RequestManager::sunsetSunriseTimesRequestFinished,
+                         this, &WndMain::sunsetSunriseReplyFinished);
 
         // Initiate procedure
         fetchProcedure();
@@ -36,8 +41,13 @@ WndMain::~WndMain()
 }
 
 void WndMain::fetchProcedure() {
-    // Get configuration
     QEventLoop loop;
+
+    // Reset all UIs
+    ui->wgIndexDisplay->resetState();
+    ui->wgMeasureDisplay->resetState();
+
+    // Get configuration
     QNetworkReply *configReply = connManager->getConfiguration();
     QObject::connect(configReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     loop.exec();
@@ -53,10 +63,22 @@ void WndMain::fetchProcedure() {
     // Get current measurement
     connManager->getCurrentMeasurement();
 
-    // Synchronously on the second thread:
-    // 2. Get location - store in cache
-    // 2. Get sunset-sundown times
-    // 2. Set background colors
+    // If the location has been changed, get all data again.
+    //if (_locationChanged) {
+        // Get location if needed - then store in cache.
+        QNetworkReply *coordsReply = connManager->getLocationCoordinates();
+        QObject::connect(coordsReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+        loop.exec();
+        QObject::disconnect(coordsReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+
+        // Get sunset-sundown times
+        QNetworkReply *sunsetSunriseReply = connManager->getSunsetSunriseTimes();
+        QObject::connect(sunsetSunriseReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+        loop.exec();
+        QObject::disconnect(sunsetSunriseReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    //}
+
+    // Set background colors
 }
 
 void WndMain::showServerErrorMessage(int retcode, QString msg) {
@@ -75,14 +97,23 @@ void WndMain::configReplyFinished(QNetworkReply *reply) {
 
         // Save configuration
         ConfigurationManager::instance().setValue(CONFIG_SERVER_UNIT, results["units"].toString());
-        ConfigurationManager::instance().setValue(CONFIG_MEASURE_LOCATION,
-                                                  results["measurement_location"].toString());
 
-        qDebug() << "Configuration settings saved.";        
+        // Check if the location has been changed.
+        // If it did, set the flag and store new value.
+        // If not, do not store new value.
+        if (ConfigurationManager::instance().value(CONFIG_MEASURE_LOCATION).toString() !=
+                results["measure_location"].toString()) {
+            ConfigurationManager::instance().setValue(CONFIG_MEASURE_LOCATION,
+                                                  results["measure_location"].toString());
+            _locationChanged = true;
+        }
+
+        // Flush settings
+        ConfigurationManager::instance().settings().sync();
     }
     else {
         QMessageBox::question(this, tr("Error receiving server configuration"),
-                                    tr("An error occurred while trying to receive server" \
+                                    tr("An error occurred while trying to receive server " \
                                        "configuration:\n%1.").arg(reply->errorString()),
                                     QMessageBox::Cancel);
     }
@@ -121,10 +152,10 @@ void WndMain::currentReplyFinished(QNetworkReply *reply) {
         ui->wgIndexDisplay->setValue(Utils::calculateHumidex(tempC, humidity));
     }
     else {
-        QMessageBox::question(this, tr("Error receiving current measurement"),
+        QMessageBox::critical(this, tr("Error receiving current measurement"),
                                     tr("An error occurred while trying to receive " \
                                        "the current measurement:\n%1.").arg(reply->errorString()),
-                                    QMessageBox::Cancel);
+                                    QMessageBox::Ok);
     }
 
     // Delete the reply later
@@ -132,10 +163,58 @@ void WndMain::currentReplyFinished(QNetworkReply *reply) {
 }
 
 void WndMain::locationCoordinatesReplyFinished(QNetworkReply *reply) {
-    qDebug() << reply->readAll();
+    // Read JSON data
+    QJsonObject jsonObject = connManager->readJsonObject(reply);
+    QJsonArray results = jsonObject["results"].toArray();
+
+    if (!jsonObject.isEmpty() || !results.isEmpty()) {
+        QJsonObject coords = results[0].toObject()["geometry"].toObject()["location"].toObject();
+
+        // Build string to save
+        QString coordString = Utils::buildCoordinatesString(
+                    ConfigurationManager::instance().value(CONFIG_MEASURE_LOCATION).toString(),
+                    coords["lat"].toDouble(), coords["lng"].toDouble());
+
+        // Save to settings
+        ConfigurationManager::instance().setValue(CONFIG_LOCATION_COORDINATES, coordString);
+        ConfigurationManager::instance().settings().sync();
+    }
+    else
+        QMessageBox::critical(this, tr("Error retrieving location coordinates"),
+                                    tr("Error from Google Maps:\n%1")
+                                       .arg(jsonObject["error_message"].toString()),
+                              QMessageBox::Ok);
 
     // Delete the reply later
     reply->deleteLater();
+
+    // Sync settings
+    ConfigurationManager::instance().settings().sync();
+}
+
+void WndMain::sunsetSunriseReplyFinished(QNetworkReply *reply) {
+    // Read JSON data
+    QJsonObject jsonObject = connManager->readJsonObject(reply);
+    QJsonObject results = jsonObject["results"].toObject();
+
+    // Get the UTC time and convert to local time.
+    QDateTime sunriseDate = QDateTime::fromString(results["sunrise"].toString(), Qt::ISODate),
+              sunsetDate = QDateTime::fromString(results["sunset"].toString(), Qt::ISODate);
+    sunriseDate.setTimeSpec(Qt::UTC);
+    sunsetDate.setTimeSpec(Qt::UTC);
+
+    sunriseDate = sunriseDate.toLocalTime();
+    sunsetDate = sunsetDate.toLocalTime();
+
+    // Store in configuration
+    ConfigurationManager::instance().setValue(CONFIG_SUNRISE_TIME, sunriseDate.time());
+    ConfigurationManager::instance().setValue(CONFIG_SUNSET_TIME, sunsetDate.time());
+
+    // Delete the reply later
+    reply->deleteLater();
+
+    // Sync settings
+    ConfigurationManager::instance().settings().sync();
 }
 
 void WndMain::on_pbtnSettings_clicked()
@@ -147,7 +226,11 @@ void WndMain::on_pbtnSettings_clicked()
 
     // If accepted, reload all data
     if (result == QDialog::Accepted) {
-        ;
-        // TODO: Reload data
+        // Reload data
+        fetchProcedure();
     }
+}
+
+void WndMain::on_pbtnRefresh_clicked() {
+    fetchProcedure();
 }

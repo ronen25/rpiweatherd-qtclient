@@ -2,7 +2,7 @@
 
 IndexesDisplay::IndexesDisplay(QWidget *parent) : QWidget(parent) {
     // Set default value
-    _value = -1;
+    _value = NO_HUMIDEX_VALUE;
 }
 
 int IndexesDisplay::value() const {
@@ -18,6 +18,11 @@ void IndexesDisplay::setValue(int value) {
 
     // Force re-draw
     this->repaint();
+}
+
+void IndexesDisplay::resetState() {
+    // Set value. The rest will be handled by the setValue() method.
+    this->setValue(NO_HUMIDEX_VALUE);
 }
 
 void IndexesDisplay::paintEvent(QPaintEvent *event) {

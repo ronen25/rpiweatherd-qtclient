@@ -7,13 +7,16 @@
 #include <QNetworkReply>
 #include <QDebug>
 #include <QJsonObject>
+#include <QJsonArray>
 #include <QEventLoop>
+#include <QDateTime>
 
 #include "ConfigurationManager.h"
 #include "DlgConfiguration.h"
 #include "IndexesDisplay.h"
 #include "MeasureDisplay.h"
 #include "RequestManager.h"
+#include "PhaseImageMap.h"
 
 namespace Ui {
 class WndMain;
@@ -40,13 +43,20 @@ private slots:
     void configReplyFinished(QNetworkReply *reply);
     void currentReplyFinished(QNetworkReply *reply);
     void locationCoordinatesReplyFinished(QNetworkReply *reply);
+    void sunsetSunriseReplyFinished(QNetworkReply *reply);
 
     void on_pbtnSettings_clicked();
 
+    void on_pbtnRefresh_clicked();
+
 private:
+    // Properties
     Ui::WndMain *ui;
     RequestManager *connManager;
-    bool _flag;
+    PhaseImageMap *skyColorMap, *sunColorMap;
+
+    // Internal properties
+    bool _locationChanged;
 };
 
 #endif // WNDMAIN_H
