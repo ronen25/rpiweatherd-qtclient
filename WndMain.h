@@ -10,6 +10,9 @@
 #include <QJsonArray>
 #include <QEventLoop>
 #include <QDateTime>
+#include <QPainter>
+#include <QRadialGradient>
+#include <QPalette>
 
 #include "ConfigurationManager.h"
 #include "DlgConfiguration.h"
@@ -22,10 +25,8 @@ namespace Ui {
 class WndMain;
 }
 
-class WndMain : public QMainWindow
-{
+class WndMain : public QMainWindow {
     Q_OBJECT
-
 public:
     // Cnstr.
     explicit WndMain(QWidget *parent = 0);
@@ -40,14 +41,24 @@ public:
     void showServerErrorMessage(int retcode, QString msg);
 
 private slots:
+    void resetState(void);
+
+    // PhaseMap callback
+    void changeTextColor(void);
+
+    // Slots for network replies
     void configReplyFinished(QNetworkReply *reply);
     void currentReplyFinished(QNetworkReply *reply);
     void locationCoordinatesReplyFinished(QNetworkReply *reply);
     void sunsetSunriseReplyFinished(QNetworkReply *reply);
 
+    // UI Callbacks
     void on_pbtnSettings_clicked();
 
     void on_pbtnRefresh_clicked();
+
+protected:
+    void paintEvent(QPaintEvent *ev);
 
 private:
     // Properties

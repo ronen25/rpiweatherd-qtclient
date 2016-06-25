@@ -7,12 +7,15 @@
 #include <QMap>
 #include <QTime>
 #include <QColor>
+#include <QDebug>
+
+#define DEFAULT_BLOCK_WIDTH 2
 
 class PhaseImageMap : public QObject {
     Q_OBJECT
 public:
     // Cnstr.
-    explicit PhaseImageMap(const QString& path, int blockWidth, QTime startTime,
+    explicit PhaseImageMap(const QString& path, QTime startTime,
                            QTime endTime, int endIndex, QObject *parent = 0);
 
     // Dstr.
@@ -32,6 +35,7 @@ public:
     bool imageLoaded(void) const;
 
 signals:
+    void phaseChaged(void);
 
 public slots:
     void nextPhase(void);
@@ -41,12 +45,12 @@ public slots:
 private:
     // Methods
     void initIndexTable(QTime startTime, QTime endTime, int sunsetIndex);
-    void loadRawImage(const QString &path, int blockWidth);
+    void loadRawImage(const QString &path);
 
     // Properties
     QMap<int, QTime> _phaseMapping;
     QColor *colors;
-    int _blockCount, _blockWidth;
+    int _blockCount;
     int _currentPhaseIndex;
     bool _imageLoaded;
 };

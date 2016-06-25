@@ -11,10 +11,8 @@ namespace Ui {
 class MeasureDisplay;
 }
 
-class MeasureDisplay : public QWidget
-{
+class MeasureDisplay : public QWidget {
     Q_OBJECT
-
 public:
     explicit MeasureDisplay(QWidget *parent = 0);
     ~MeasureDisplay();
@@ -22,13 +20,17 @@ public:
     // Getters for the measurement details
     float temperatureDisplayed(void) const;
     float humidityDisplayed(void) const;
-    QDate dateDisplayed(void) const;
+    QString dateDisplayed(void) const;
+    QColor textColor(void) const;
 
     void resetState(void);
 
 public slots:
-    // Setters for all properties
+    // Setter for all properties
     void setMeasurementDetails(QDate date, float temperature, char unit, float humidity);
+
+    // Color setter
+    void setTextColor(const QColor &color);
 
 protected:
     void resizeEvent(QResizeEvent *event);
@@ -36,8 +38,9 @@ protected:
 private:
     Ui::MeasureDisplay *ui;
     float _temp, _humid;
-    QDate _measureDate;
+    QString _measureDate;
     char _measureUnit;
+    QColor _textColor;
 
     // Constants
     const QString MEASUREMENT_DISPLAY_TEMPLATE = tr("%1 °%2");

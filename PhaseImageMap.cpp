@@ -1,11 +1,12 @@
 #include "PhaseImageMap.h"
 
-PhaseImageMap::PhaseImageMap(const QString &path, int blockWidth, QTime startTime,
+PhaseImageMap::PhaseImageMap(const QString &path, QTime startTime,
                              QTime endTime, int endIndex, QObject *parent) :
-                              QObject(parent),
+                             QObject(parent),
+                             _currentPhaseIndex(0),
                              _imageLoaded(false) {
     // Load image and initialize indexes
-    loadRawImage(path, blockWidth);
+    loadRawImage(path);
     initIndexTable(startTime, endTime, endIndex);
 }
 
@@ -14,7 +15,7 @@ PhaseImageMap::~PhaseImageMap(void) {
     delete[] colors;
 }
 
-void PhaseImageMap::loadRawImage(const QString &path, int blockWidth) {
+void PhaseImageMap::loadRawImage(const QString &path) {
     QImage img;
 
     // Attempt to open image
@@ -22,12 +23,11 @@ void PhaseImageMap::loadRawImage(const QString &path, int blockWidth) {
         return;
 
     // Get block count
-    _blockWidth = blockWidth;
-    _blockCount = img.size().width() / _blockWidth;
+    _blockCount = img.size().width() / DEFAULT_BLOCK_WIDTH;
 
     // Initialize colors array and get blocks
     colors = new QColor[_blockCount];
-    for (int i = 0, x = 0, y = img.height() / 2; i < _blockCount; i++, x += _blockWidth) {
+    for (int i = 0, x = 0, y = img.height() / 2; i < _blockCount; i++, x += DEFAULT_BLOCK_WIDTH) {
         // Sample color
         colors[i] = QColor(img.pixel(x, y));
     }
@@ -65,7 +65,18 @@ QColor &PhaseImageMap::getPhaseColor(int phaseIndex) const {
 }
 
 QColor &PhaseImageMap::getPhaseColor(QTime timeIndex) const {
-    return colors[this->_phaseMapping.key(timeIndex)];
+    QTime ptr = _phaseMapping.value(0);
+
+    // Go through every key value pair.
+    // Stop when the pair tested value is bigger then the timeIndex.
+    foreach (QTime time, _phaseMapping.values()) {
+        if (time > timeIndex) {
+            ptr = time;
+            break;
+        }
+    }
+
+    return colors[this->_phaseMapping.key(ptr)];
 }
 
 QColor &PhaseImageMap::getCurrentPhaseColor() const {
@@ -77,11 +88,15 @@ int PhaseImageMap::blockCount(void) const {
 }
 
 int PhaseImageMap::blockWidth(void) const {
-    return this->_blockWidth;
+    return DEFAULT_BLOCK_WIDTH;
 }
 
 QTime PhaseImageMap::getPhaseTimeByIndex(int index) {
     return _phaseMapping.value(index);
+}
+
+bool PhaseImageMap::imageLoaded() const {
+    return _imageLoaded;
 }
 
 void PhaseImageMap::setCurrentPhase(int index) {
@@ -93,4 +108,7 @@ void PhaseImageMap::nextPhase(void) {
         _currentPhaseIndex = 0;
     else
         _currentPhaseIndex++;
+
+    // Emit signal
+    emit phaseChaged();
 }

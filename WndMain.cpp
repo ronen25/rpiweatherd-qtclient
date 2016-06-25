@@ -4,6 +4,7 @@
 WndMain::WndMain(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::WndMain),
+    skyColorMap(nullptr), sunColorMap(nullptr),
     _locationChanged(false)
 {
     ui->setupUi(this);
@@ -44,6 +45,7 @@ void WndMain::fetchProcedure() {
     QEventLoop loop;
 
     // Reset all UIs
+    this->resetState();
     ui->wgIndexDisplay->resetState();
     ui->wgMeasureDisplay->resetState();
 
@@ -78,12 +80,61 @@ void WndMain::fetchProcedure() {
         QObject::disconnect(sunsetSunriseReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     //}
 
-    // Set background colors
+        // Sunrise and sunset times are required to load the phase maps.
+        QTime sunriseTime = ConfigurationManager::instance().value(CONFIG_SUNRISE_TIME).toTime(),
+              sunsetTime = ConfigurationManager::instance().value(CONFIG_SUNSET_TIME).toTime();
+
+        // Check if maps are already loaded. If they are, delete them and re-load.
+        if (skyColorMap != nullptr && sunColorMap != nullptr) {
+            QObject::disconnect(skyColorMap, &PhaseImageMap::phaseChaged, this, &WndMain::changeTextColor);
+
+            delete skyColorMap;
+            delete sunColorMap;
+
+            skyColorMap = nullptr;
+            sunColorMap = nullptr;
+        }
+
+        // Load maps
+        skyColorMap = new PhaseImageMap(":/maps/res/SkyColorMap.png", sunriseTime, sunsetTime,
+                                        67, this);
+        sunColorMap = new PhaseImageMap(":/maps/res/SunColorMap.png", sunriseTime, sunsetTime,
+                                        67, this);
+
+        // Check if the maps were loaded
+        if (!skyColorMap->imageLoaded() || !sunColorMap->imageLoaded())
+            QMessageBox::critical(this, tr("Failed to load phase images"),
+                                  tr("Failed to load phase images.\n" \
+                                     "Live background feature is disabled."),
+                                  QMessageBox::Ok);
+        else
+            QObject::connect(skyColorMap, &PhaseImageMap::phaseChaged, this, &WndMain::changeTextColor);
+
+        // Repaint just in case
+        this->repaint();
 }
 
 void WndMain::showServerErrorMessage(int retcode, QString msg) {
     QMessageBox::critical(this, tr("Server Error"), tr("Server error %1:\n%2")
                           .arg(retcode).arg(msg), QMessageBox::Ok);
+}
+
+void WndMain::resetState() {
+    // Remove stylesheet
+    this->setStyleSheet("");
+}
+
+void WndMain::changeTextColor() {
+    // Get application palette
+    QPalette appPalette = QApplication::palette();
+
+    // Determine text color
+    qDebug() << skyColorMap->getCurrentPhaseColor().lightness() << ui->wgMeasureDisplay->textColor().lightness();
+    if (skyColorMap->getCurrentPhaseColor().lightness() <
+            appPalette.color(QPalette::WindowText).lightness())
+        ui->wgMeasureDisplay->setTextColor(appPalette.color(QPalette::BrightText));
+    else
+        ui->wgMeasureDisplay->setTextColor(appPalette.color(QPalette::WindowText));
 }
 
 void WndMain::configReplyFinished(QNetworkReply *reply) {
@@ -233,4 +284,22 @@ void WndMain::on_pbtnSettings_clicked()
 
 void WndMain::on_pbtnRefresh_clicked() {
     fetchProcedure();
+}
+
+void WndMain::paintEvent(QPaintEvent *ev) {
+    Q_UNUSED(ev);
+
+    // Get painter
+    QPainter painter(this);
+
+    // Get current time
+    QTime currTime = QTime::currentTime();
+
+    // Create the gradient
+    QRadialGradient radialGrad(QPointF(0, 0), this->width());
+    radialGrad.setColorAt(0, sunColorMap->getPhaseColor(currTime));
+    radialGrad.setColorAt(0.8, skyColorMap->getPhaseColor(currTime));
+
+    // Draw gradient
+    painter.fillRect(ui->centralWidget->rect(), radialGrad);
 }

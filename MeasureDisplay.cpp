@@ -3,7 +3,8 @@
 
 MeasureDisplay::MeasureDisplay(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::MeasureDisplay)
+    ui(new Ui::MeasureDisplay),
+    _textColor(QApplication::palette().color(QPalette::WindowText))
 {
     ui->setupUi(this);
 
@@ -28,8 +29,12 @@ float MeasureDisplay::humidityDisplayed() const {
     return _humid;
 }
 
-QDate MeasureDisplay::dateDisplayed() const {
+QString MeasureDisplay::dateDisplayed() const {
     return _measureDate;
+}
+
+QColor MeasureDisplay::textColor() const {
+    return _textColor;
 }
 
 void MeasureDisplay::resetState() {
@@ -48,13 +53,13 @@ void MeasureDisplay::setMeasurementDetails(QDate date, float temperature, char u
     // Set all details
     _temp = temperature;
     _humid = humidity;
-    _measureDate = date;
+    _measureDate = date.toString("dddd, dd MMMM yyyy");
     _measureUnit = unit;
 
     // Set texts
-    ui->lblDate->setText(_measureDate.toString("dddd, dd MMMM yyyy"));
+    ui->lblDate->setText(_measureDate);
     ui->lblMeasurement->setText(MEASUREMENT_DISPLAY_TEMPLATE.arg(_temp).arg(
-                                                                 QChar(unit).toUpper().toLatin1()));
+                                                             QChar(unit).toUpper().toLatin1()));
     ui->lblHumidity->setText(HUMIDITY_DISPLAY_TEMPLATE.arg(_humid));
     ui->lblFeelsLike->setText(FEELS_LIKE_DISPLAY_TEMPLATE.arg(
                                   Utils::calculateHeatIndex(temperature, humidity)).arg(
@@ -62,6 +67,15 @@ void MeasureDisplay::setMeasurementDetails(QDate date, float temperature, char u
 
     // Resize newly-created text
     resizeEvent(nullptr);
+}
+
+void MeasureDisplay::setTextColor(const QColor &color) {
+    _textColor = color;
+
+    // Set stylesheet
+    QPalette palette = this->palette();
+    palette.setColor(QPalette::WindowText, color);
+    this->setPalette(palette);
 }
 
 void MeasureDisplay::resizeEvent(QResizeEvent *event) {
