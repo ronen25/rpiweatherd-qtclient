@@ -36,11 +36,12 @@ double Utils::calculateHeatIndex(float temp, float humid) {
     double result = (c1 + c2 * tempF + c3 * humid - c4 * tempF * humid - c5 * tempF * tempF
                     - c6 * humid * humid + c7 * tempF * tempF * humid + c8 * tempF * humid * humid -
                     c9 * tempF * tempF * humid * humid);
-    result = round(result * 100) / 100;
 
-    // Convert back and return
-    return Utils::convertTemperatureIfNeeded(result, QString(RPIWEATHERD_UNITS_IMPERIAL),
+    // Convert back, round and return
+    result = Utils::convertTemperatureIfNeeded(result, QString(RPIWEATHERD_UNITS_IMPERIAL),
         ConfigurationManager::instance().value(CONFIG_PREFERRED_UNIT).toString());
+
+    return round(result * 100) / 100;
 }
 
 double Utils::convertTemperatureIfNeeded(float temp) {

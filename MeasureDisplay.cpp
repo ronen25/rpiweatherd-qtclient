@@ -62,7 +62,8 @@ void MeasureDisplay::setMeasurementDetails(QDate date, float temperature, char u
                                                              QChar(unit).toUpper().toLatin1()));
     ui->lblHumidity->setText(HUMIDITY_DISPLAY_TEMPLATE.arg(_humid));
     ui->lblFeelsLike->setText(FEELS_LIKE_DISPLAY_TEMPLATE.arg(
-                                  Utils::calculateHeatIndex(temperature, humidity)).arg(
+                                  Utils::calculateHeatIndex(temperature,
+                                                            humidity)).arg(
                                   QChar(unit).toUpper().toLatin1()));
 
     // Resize newly-created text
