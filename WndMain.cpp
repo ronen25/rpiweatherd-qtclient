@@ -66,7 +66,7 @@ void WndMain::fetchProcedure() {
     connManager->getCurrentMeasurement();
 
     // If the location has been changed, get all data again.
-    //if (_locationChanged) {
+    if (_locationChanged) {
         // Get location if needed - then store in cache.
         QNetworkReply *coordsReply = connManager->getLocationCoordinates();
         QObject::connect(coordsReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
@@ -78,40 +78,40 @@ void WndMain::fetchProcedure() {
         QObject::connect(sunsetSunriseReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
         loop.exec();
         QObject::disconnect(sunsetSunriseReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-    //}
+    }
 
-        // Sunrise and sunset times are required to load the phase maps.
-        QTime sunriseTime = ConfigurationManager::instance().value(CONFIG_SUNRISE_TIME).toTime(),
-              sunsetTime = ConfigurationManager::instance().value(CONFIG_SUNSET_TIME).toTime();
+    // Sunrise and sunset times are required to load the phase maps.
+    QTime sunriseTime = ConfigurationManager::instance().value(CONFIG_SUNRISE_TIME).toTime(),
+            sunsetTime = ConfigurationManager::instance().value(CONFIG_SUNSET_TIME).toTime();
 
-        // Check if maps are already loaded. If they are, delete them and re-load.
-        if (skyColorMap != nullptr && sunColorMap != nullptr) {
-            QObject::disconnect(skyColorMap, &PhaseImageMap::phaseChaged, this, &WndMain::changeTextColor);
+    // Check if maps are already loaded. If they are, delete them and re-load.
+    if (skyColorMap != nullptr && sunColorMap != nullptr) {
+        QObject::disconnect(skyColorMap, &PhaseImageMap::phaseChaged, this, &WndMain::changeTextColor);
 
-            delete skyColorMap;
-            delete sunColorMap;
+        delete skyColorMap;
+        delete sunColorMap;
 
-            skyColorMap = nullptr;
-            sunColorMap = nullptr;
-        }
+        skyColorMap = nullptr;
+        sunColorMap = nullptr;
+    }
 
-        // Load maps
-        skyColorMap = new PhaseImageMap(":/maps/res/SkyColorMap.png", sunriseTime, sunsetTime,
-                                        67, this);
-        sunColorMap = new PhaseImageMap(":/maps/res/SunColorMap.png", sunriseTime, sunsetTime,
-                                        67, this);
+    // Load maps
+    skyColorMap = new PhaseImageMap(":/maps/res/SkyColorMap.png", sunriseTime, sunsetTime,
+                                    67, this);
+    sunColorMap = new PhaseImageMap(":/maps/res/SunColorMap.png", sunriseTime, sunsetTime,
+                                    67, this);
 
-        // Check if the maps were loaded
-        if (!skyColorMap->imageLoaded() || !sunColorMap->imageLoaded())
-            QMessageBox::critical(this, tr("Failed to load phase images"),
-                                  tr("Failed to load phase images.\n" \
-                                     "Live background feature is disabled."),
-                                  QMessageBox::Ok);
-        else
-            QObject::connect(skyColorMap, &PhaseImageMap::phaseChaged, this, &WndMain::changeTextColor);
+    // Check if the maps were loaded
+    if (!skyColorMap->imageLoaded() || !sunColorMap->imageLoaded())
+        QMessageBox::critical(this, tr("Failed to load phase images"),
+                              tr("Failed to load phase images.\n" \
+                                 "Live background feature is disabled."),
+                              QMessageBox::Ok);
+    else
+        QObject::connect(skyColorMap, &PhaseImageMap::phaseChaged, this, &WndMain::changeTextColor);
 
-        // Repaint just in case
-        this->repaint();
+    // Repaint just in case
+    this->repaint();
 }
 
 void WndMain::showServerErrorMessage(int retcode, QString msg) {
