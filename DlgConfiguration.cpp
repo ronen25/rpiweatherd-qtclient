@@ -100,3 +100,44 @@ void DlgConfiguration::on_buttonBox_accepted() {
 void DlgConfiguration::on_buttonBox_rejected() {
     close();
 }
+
+void DlgConfiguration::on_pbtnTestConnection_clicked() {
+    // Disable text button (for now)
+    ui->pbtnTestConnection->setEnabled(false);
+
+    // Create socket
+    testSock = new QTcpSocket(this);
+
+    // Setup signals
+    QObject::connect(testSock, &QTcpSocket::connected, this, &DlgConfiguration::on_socket_connect);
+    //QObject::connect(testSock, &QTcpSocket::error, this, &DlgConfiguration::on_socket_error);
+    QObject::connect(testSock,
+                     static_cast<void(QAbstractSocket::*)(QAbstractSocket::SocketError)>
+                     (&QAbstractSocket::error), this, &DlgConfiguration::on_socket_error);
+
+    // Connect to host
+    testSock->connectToHost(QHostAddress(ui->lnServerHostname->text()),
+                            ui->spnPort->value());
+}
+
+void DlgConfiguration::on_socket_error(QAbstractSocket::SocketError socketError) {
+    Q_UNUSED(socketError);
+
+    // Show message
+    QMessageBox::critical(this, tr("Connection Error"), tr("Error:\n%1")
+                          .arg(testSock->errorString()), QMessageBox::Ok);
+
+    // Enable button and destroy socket
+    ui->pbtnTestConnection->setEnabled(true);
+    delete testSock;
+}
+
+void DlgConfiguration::on_socket_connect() {
+    // Show message
+    QMessageBox::information(this, tr("Connection OK"), tr("Successfully connected to server."),
+                          QMessageBox::Ok);
+
+    // Enable button and destroy socket
+    ui->pbtnTestConnection->setEnabled(true);
+    delete testSock;
+}

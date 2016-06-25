@@ -4,6 +4,9 @@
 #include <QDialog>
 #include <QSettings>
 #include <QMessageBox>
+#include <QTcpSocket>
+#include <QAbstractSocket>
+#include <QHostAddress>
 
 #include "RequestManager.h"
 #include "ConfigurationConstants.h"
@@ -25,6 +28,10 @@ public:
     // Utility Methods
     void showAboutTab(void);
 
+public slots:
+    void on_socket_error(QAbstractSocket::SocketError socketError);
+    void on_socket_connect();
+
 private slots:
     void on_pbtnAbputQt_clicked();
 
@@ -32,9 +39,12 @@ private slots:
 
     void on_buttonBox_rejected();
 
+    void on_pbtnTestConnection_clicked();
+
 private:
     // Properties
     Ui::DlgConfiguration *ui;
+    QTcpSocket *testSock;
 
     // Methods
     void loadConfiguration(void);
