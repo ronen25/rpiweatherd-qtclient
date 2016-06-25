@@ -66,15 +66,19 @@ QColor &PhaseImageMap::getPhaseColor(int phaseIndex) const {
 
 QColor &PhaseImageMap::getPhaseColor(QTime timeIndex) const {
     QTime ptr = _phaseMapping.value(0);
+    QMap<int, QTime>::const_iterator iter, endIter;
+    bool forward = true;
 
     // Go through every key value pair.
     // Stop when the pair tested value is bigger then the timeIndex.
-    foreach (QTime time, _phaseMapping.values()) {
-        if (time > timeIndex) {
-            ptr = time;
+    forward = timeIndex > ptr;
+
+    for (forward ? iter = _phaseMapping.constBegin() : iter = _phaseMapping.constEnd();
+         iter != endIter; forward ? ++iter : --iter)
+        if (*iter > timeIndex) {
+            ptr = *iter;
             break;
         }
-    }
 
     return colors[this->_phaseMapping.key(ptr)];
 }

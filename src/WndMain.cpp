@@ -104,9 +104,9 @@ void WndMain::fetchProcedure() {
 
         // Load maps
         skyColorMap = new PhaseImageMap(":/maps/res/SkyColorMap.png", sunriseTime, sunsetTime,
-                                        67, this);
+                                        DEFAULT_MAP_SUNSET_BLOCK, this);
         sunColorMap = new PhaseImageMap(":/maps/res/SunColorMap.png", sunriseTime, sunsetTime,
-                                        67, this);
+                                        DEFAULT_MAP_SUNSET_BLOCK, this);
 
         // Check if the maps were loaded
         if (!skyColorMap->imageLoaded() || !sunColorMap->imageLoaded())
@@ -114,9 +114,6 @@ void WndMain::fetchProcedure() {
                                   tr("Failed to load phase images.\n" \
                                      "Live background feature is disabled."),
                                   QMessageBox::Ok);
-        else
-            QObject::connect(skyColorMap, &PhaseImageMap::phaseChaged, this,
-                             &WndMain::changeTextColor);
     }
 
     // Repaint just in case
@@ -138,7 +135,7 @@ void WndMain::changeTextColor() {
     QPalette appPalette = QApplication::palette();
 
     // Determine text color
-    if (skyColorMap->getCurrentPhaseColor().lightness() <
+    if (skyColorMap->getPhaseColor(QTime::currentTime()).lightness() <
             appPalette.color(QPalette::WindowText).lightness())
         ui->wgMeasureDisplay->setTextColor(appPalette.color(QPalette::BrightText));
     else
@@ -325,6 +322,9 @@ void WndMain::paintEvent(QPaintEvent *ev) {
 
             // Draw gradient
             painter.fillRect(ui->centralWidget->rect(), radialGrad);
+
+            // Determine text color
+            changeTextColor();
         }
     }
 }

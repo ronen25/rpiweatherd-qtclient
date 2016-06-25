@@ -10,6 +10,7 @@
 #include <QDebug>
 
 #define DEFAULT_BLOCK_WIDTH 2
+#define DEFAULT_MAP_SUNSET_BLOCK 90
 
 class PhaseImageMap : public QObject {
     Q_OBJECT
