@@ -12,6 +12,7 @@
 #define CONFIG_LOCATION_COORDINATES "location_coords"
 #define CONFIG_SUNRISE_TIME "sunrise_time"
 #define CONFIG_SUNSET_TIME "sunset_time"
+#define CONFIG_ENABLE_DYNAMIC_BACKGROUND "enable_dynamic_background"
 
 // Configuration values
 #define RPIWEATHERD_DEFAULT_PORT 6005

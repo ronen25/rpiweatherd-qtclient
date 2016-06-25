@@ -50,6 +50,10 @@ void DlgConfiguration::loadConfiguration() {
 
     // Show humidity
     ui->chkShowHumidity->setChecked(settings.value(CONFIG_SHOW_HUMIDITY, true).toBool());
+
+    // Enable dynamic background
+    ui->grpEnableDynamicBackground->setChecked(
+                settings.value(CONFIG_ENABLE_DYNAMIC_BACKGROUND).toBool());
 }
 
 void DlgConfiguration::saveConfiguration() {
@@ -81,16 +85,18 @@ void DlgConfiguration::saveConfiguration() {
     // Set show humidity
     settings.setValue(CONFIG_SHOW_HUMIDITY, ui->chkShowHumidity->isChecked());
 
+    // Set dynamic background
+    settings.setValue(CONFIG_ENABLE_DYNAMIC_BACKGROUND,
+                      ui->grpEnableDynamicBackground->isChecked());
+
     // Sync
     settings.sync();
 }
 
-void DlgConfiguration::on_buttonBox_accepted()
-{
+void DlgConfiguration::on_buttonBox_accepted() {
     saveConfiguration();
 }
 
-void DlgConfiguration::on_buttonBox_rejected()
-{
+void DlgConfiguration::on_buttonBox_rejected() {
     close();
 }

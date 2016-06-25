@@ -69,50 +69,55 @@ void WndMain::fetchProcedure() {
     connManager->getCurrentMeasurement();
 
     // If the location has been changed, get all data again.
-    if (_locationChanged) {
-        // Get location if needed - then store in cache.
-        QNetworkReply *coordsReply = connManager->getLocationCoordinates();
-        QObject::connect(coordsReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-        loop.exec();
-        QObject::disconnect(coordsReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    if (ConfigurationManager::instance().value(CONFIG_ENABLE_DYNAMIC_BACKGROUND).toBool()) {
+        if (_locationChanged) {
+            // Get location if needed - then store in cache.
+            QNetworkReply *coordsReply = connManager->getLocationCoordinates();
+            QObject::connect(coordsReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+            loop.exec();
+            QObject::disconnect(coordsReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
 
-        // Get sunset-sundown times
-        QNetworkReply *sunsetSunriseReply = connManager->getSunsetSunriseTimes();
-        QObject::connect(sunsetSunriseReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-        loop.exec();
-        QObject::disconnect(sunsetSunriseReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+            // Get sunset-sundown times
+            QNetworkReply *sunsetSunriseReply = connManager->getSunsetSunriseTimes();
+            QObject::connect(sunsetSunriseReply, &QNetworkReply::finished, &loop,
+                             &QEventLoop::quit);
+            loop.exec();
+            QObject::disconnect(sunsetSunriseReply, &QNetworkReply::finished, &loop,
+                                &QEventLoop::quit);
+        }
+
+        // Sunrise and sunset times are required to load the phase maps.
+        QTime sunriseTime = ConfigurationManager::instance().value(CONFIG_SUNRISE_TIME).toTime(),
+                sunsetTime = ConfigurationManager::instance().value(CONFIG_SUNSET_TIME).toTime();
+
+        // Check if maps are already loaded. If they are, delete them and re-load.
+        if (skyColorMap != nullptr && sunColorMap != nullptr) {
+            QObject::disconnect(skyColorMap, &PhaseImageMap::phaseChaged, this,
+                                &WndMain::changeTextColor);
+
+            delete skyColorMap;
+            delete sunColorMap;
+
+            skyColorMap = nullptr;
+            sunColorMap = nullptr;
+        }
+
+        // Load maps
+        skyColorMap = new PhaseImageMap(":/maps/res/SkyColorMap.png", sunriseTime, sunsetTime,
+                                        67, this);
+        sunColorMap = new PhaseImageMap(":/maps/res/SunColorMap.png", sunriseTime, sunsetTime,
+                                        67, this);
+
+        // Check if the maps were loaded
+        if (!skyColorMap->imageLoaded() || !sunColorMap->imageLoaded())
+            QMessageBox::critical(this, tr("Failed to load phase images"),
+                                  tr("Failed to load phase images.\n" \
+                                     "Live background feature is disabled."),
+                                  QMessageBox::Ok);
+        else
+            QObject::connect(skyColorMap, &PhaseImageMap::phaseChaged, this,
+                             &WndMain::changeTextColor);
     }
-
-    // Sunrise and sunset times are required to load the phase maps.
-    QTime sunriseTime = ConfigurationManager::instance().value(CONFIG_SUNRISE_TIME).toTime(),
-            sunsetTime = ConfigurationManager::instance().value(CONFIG_SUNSET_TIME).toTime();
-
-    // Check if maps are already loaded. If they are, delete them and re-load.
-    if (skyColorMap != nullptr && sunColorMap != nullptr) {
-        QObject::disconnect(skyColorMap, &PhaseImageMap::phaseChaged, this,
-                            &WndMain::changeTextColor);
-
-        delete skyColorMap;
-        delete sunColorMap;
-
-        skyColorMap = nullptr;
-        sunColorMap = nullptr;
-    }
-
-    // Load maps
-    skyColorMap = new PhaseImageMap(":/maps/res/SkyColorMap.png", sunriseTime, sunsetTime,
-                                    67, this);
-    sunColorMap = new PhaseImageMap(":/maps/res/SunColorMap.png", sunriseTime, sunsetTime,
-                                    67, this);
-
-    // Check if the maps were loaded
-    if (!skyColorMap->imageLoaded() || !sunColorMap->imageLoaded())
-        QMessageBox::critical(this, tr("Failed to load phase images"),
-                              tr("Failed to load phase images.\n" \
-                                 "Live background feature is disabled."),
-                              QMessageBox::Ok);
-    else
-        QObject::connect(skyColorMap, &PhaseImageMap::phaseChaged, this, &WndMain::changeTextColor);
 
     // Repaint just in case
     this->repaint();
@@ -133,7 +138,6 @@ void WndMain::changeTextColor() {
     QPalette appPalette = QApplication::palette();
 
     // Determine text color
-    qDebug() << skyColorMap->getCurrentPhaseColor().lightness() << ui->wgMeasureDisplay->textColor().lightness();
     if (skyColorMap->getCurrentPhaseColor().lightness() <
             appPalette.color(QPalette::WindowText).lightness())
         ui->wgMeasureDisplay->setTextColor(appPalette.color(QPalette::BrightText));
@@ -299,17 +303,25 @@ void WndMain::on_f1AboutShortcut() {
 void WndMain::paintEvent(QPaintEvent *ev) {
     Q_UNUSED(ev);
 
-    // Get painter
-    QPainter painter(this);
+    // All of this should only be done if dynamic background is enabled.
+    if (ConfigurationManager::instance().value(CONFIG_ENABLE_DYNAMIC_BACKGROUND).toBool()) {
+        // This check is needed for an edge case - if the program is run without dynamic background,
+        // and it is then enabled, the paint event happens before the maps are loaded
+        // so a segfault occurres.
+        if (sunColorMap && skyColorMap) {
+            // Get painter
+            QPainter painter(this);
 
-    // Get current time
-    QTime currTime = QTime::currentTime();
+            // Get current time
+            QTime currTime = QTime::currentTime();
 
-    // Create the gradient
-    QRadialGradient radialGrad(QPointF(0, 0), this->width());
-    radialGrad.setColorAt(0, sunColorMap->getPhaseColor(currTime));
-    radialGrad.setColorAt(0.8, skyColorMap->getPhaseColor(currTime));
+            // Create the gradient
+            QRadialGradient radialGrad(QPointF(0, 0), this->width());
+            radialGrad.setColorAt(0, sunColorMap->getPhaseColor(currTime));
+            radialGrad.setColorAt(0.8, skyColorMap->getPhaseColor(currTime));
 
-    // Draw gradient
-    painter.fillRect(ui->centralWidget->rect(), radialGrad);
+            // Draw gradient
+            painter.fillRect(ui->centralWidget->rect(), radialGrad);
+        }
+    }
 }

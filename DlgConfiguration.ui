@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>455</width>
-    <height>446</height>
+    <height>537</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -133,21 +133,43 @@
             </property>
            </widget>
           </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="grpEnableDynamicBackground">
+         <property name="title">
+          <string>Enable Dynamic Background</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_4">
           <item>
-           <spacer name="verticalSpacer">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sets the background to match the sky, and changes throughout the day.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt; font-weight:600;&quot;&gt;Warning: &lt;/span&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Uses the &lt;/span&gt;&lt;a href=&quot;http://sunrise-sunset.org/&quot;&gt;&lt;span style=&quot; font-size:10pt; text-decoration: underline; color:#0000ff;&quot;&gt;Sunrise-Sunset.org&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt; and Google Maps APIs, which are non-free and might collect your information.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
+            <property name="wordWrap">
+             <bool>true</bool>
             </property>
-           </spacer>
+           </widget>
           </item>
          </layout>
         </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>
@@ -159,7 +181,20 @@
        <item row="0" column="0" colspan="3">
         <widget class="QLabel" name="lblAbout">
          <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;rpiweatherd-qt &lt;/span&gt;- A small Qt-based client for rpiweatherd.&lt;/p&gt;&lt;p&gt;Version: %1&lt;/p&gt;&lt;p&gt;Copyright (C) 2016 Ronen Lapushner.&lt;/p&gt;&lt;hr/&gt;&lt;p&gt;Redistributed under the GNU GPL v3 license.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;
+&lt;span style=&quot; font-weight:600;&quot;&gt;rpiweatherd-qt&lt;/span&gt;
+- A small Qt-based client for rpiweatherd.&lt;/p&gt;
+
+&lt;p&gt;Version: %1&lt;/p&gt;
+
+&lt;p&gt;Copyright (C) 2016 Ronen Lapushner.&lt;/p&gt;
+&lt;hr/&gt;
+&lt;p&gt;
+Uses Google Maps APIs. Copyright (C) Google Inc. &lt;br/&gt;
+Uses &lt;a href=&quot;http://sunrise-sunset.org/&quot;&gt;sunrise-sunset.org&lt;/a&gt; APIs. Copyright (C) Sunrise-Sunset.
+&lt;/p&gt;
+&lt;hr/&gt;
+&lt;p&gt;Redistributed under the GNU GPL v3 license.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
         </widget>
        </item>
