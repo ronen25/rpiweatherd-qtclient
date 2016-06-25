@@ -13,6 +13,7 @@
 #include <QPainter>
 #include <QRadialGradient>
 #include <QPalette>
+#include <QShortcut>
 
 #include "ConfigurationManager.h"
 #include "DlgConfiguration.h"
@@ -56,6 +57,8 @@ private slots:
     void on_pbtnSettings_clicked();
 
     void on_pbtnRefresh_clicked();
+
+    void on_f1AboutShortcut();
 
 protected:
     void paintEvent(QPaintEvent *ev);

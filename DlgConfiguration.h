@@ -12,13 +12,17 @@ namespace Ui {
 class DlgConfiguration;
 }
 
-class DlgConfiguration : public QDialog
-{
+class DlgConfiguration : public QDialog {
     Q_OBJECT
-
 public:
+    // Cnstr.
     explicit DlgConfiguration(QWidget *parent = 0);
+
+    // Dstr.
     ~DlgConfiguration();
+
+    // Utility Methods
+    void showAboutTab(void);
 
 private slots:
     void on_pbtnAbputQt_clicked();

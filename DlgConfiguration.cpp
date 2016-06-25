@@ -3,8 +3,7 @@
 
 DlgConfiguration::DlgConfiguration(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::DlgConfiguration)
-{
+    ui(new Ui::DlgConfiguration) {
     ui->setupUi(this);
 
     // Set version info
@@ -14,13 +13,15 @@ DlgConfiguration::DlgConfiguration(QWidget *parent) :
     loadConfiguration();
 }
 
-DlgConfiguration::~DlgConfiguration()
-{
+DlgConfiguration::~DlgConfiguration() {
     delete ui;
 }
 
-void DlgConfiguration::on_pbtnAbputQt_clicked()
-{
+void DlgConfiguration::showAboutTab() {
+    ui->tabWidget->setCurrentIndex(1);
+}
+
+void DlgConfiguration::on_pbtnAbputQt_clicked() {
     QApplication::aboutQt();
 }
 

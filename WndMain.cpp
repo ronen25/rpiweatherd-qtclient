@@ -13,6 +13,10 @@ WndMain::WndMain(QWidget *parent) :
     ui->pbtnRefresh->setIcon(style()->standardIcon(QStyle::SP_BrowserReload));
     ui->pbtnSettings->setIcon(style()->standardIcon(QStyle::SP_FileDialogListView));
 
+    // Register F1 shortcut to about dialog
+    QShortcut *f1AboutShortcut = new QShortcut(QKeySequence(tr("F1", "About...")), this);
+    QObject::connect(f1AboutShortcut, &QShortcut::activated, this, &WndMain::on_f1AboutShortcut);
+
     // Check if we need first configuration
     if (!ConfigurationManager::instance().value(CONFIG_FIRST_CONFIG, false).toBool())
         on_pbtnSettings_clicked();
@@ -36,8 +40,7 @@ WndMain::WndMain(QWidget *parent) :
     }
 }
 
-WndMain::~WndMain()
-{
+WndMain::~WndMain() {
     delete ui;
 }
 
@@ -86,7 +89,8 @@ void WndMain::fetchProcedure() {
 
     // Check if maps are already loaded. If they are, delete them and re-load.
     if (skyColorMap != nullptr && sunColorMap != nullptr) {
-        QObject::disconnect(skyColorMap, &PhaseImageMap::phaseChaged, this, &WndMain::changeTextColor);
+        QObject::disconnect(skyColorMap, &PhaseImageMap::phaseChaged, this,
+                            &WndMain::changeTextColor);
 
         delete skyColorMap;
         delete sunColorMap;
@@ -284,6 +288,12 @@ void WndMain::on_pbtnSettings_clicked()
 
 void WndMain::on_pbtnRefresh_clicked() {
     fetchProcedure();
+}
+
+void WndMain::on_f1AboutShortcut() {
+    DlgConfiguration *config = new DlgConfiguration(this);
+    config->showAboutTab();
+    config->exec();
 }
 
 void WndMain::paintEvent(QPaintEvent *ev) {
