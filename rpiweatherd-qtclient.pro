@@ -48,3 +48,6 @@ DEFINES += APPLICATION_VERSION=\\\"$$VERSION\\\"
 
 RESOURCES += \
     Resources.qrc
+
+DISTFILES += \
+    LICENSE
