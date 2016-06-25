@@ -75,6 +75,6 @@ QColor IndexesDisplay::getHumidexColor() const {
         return HUMIDEX_GREAT_DISCOMFORT_COLOR;
     else if (45 <= _value && _value <= 53)
         return HUMIDEX_DANGEROUS_COLOR;
-    else if (_value >= 54)
+    else
         return HUMIDEX_HEAT_STROKE_COLOR;
 }

@@ -64,6 +64,9 @@ protected:
     void paintEvent(QPaintEvent *ev);
 
 private:
+    // Init Methods
+    void initConnectionManager(void);
+
     // Properties
     Ui::WndMain *ui;
     RequestManager *connManager;

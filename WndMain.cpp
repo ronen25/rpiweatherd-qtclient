@@ -4,9 +4,9 @@
 WndMain::WndMain(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::WndMain),
+    connManager(nullptr),
     skyColorMap(nullptr), sunColorMap(nullptr),
-    _locationChanged(false)
-{
+    _locationChanged(false) {
     ui->setupUi(this);
 
     // Load standard icons
@@ -18,26 +18,22 @@ WndMain::WndMain(QWidget *parent) :
     QObject::connect(f1AboutShortcut, &QShortcut::activated, this, &WndMain::on_f1AboutShortcut);
 
     // Check if we need first configuration
-    if (!ConfigurationManager::instance().value(CONFIG_FIRST_CONFIG, false).toBool())
-        on_pbtnSettings_clicked();
-    else {
-        // Initialize connection manager and connect signals
-        connManager = new RequestManager(
-                    ConfigurationManager::instance().value(CONFIG_SERVER_IP).toString(),
-                    ConfigurationManager::instance().value(CONFIG_SERVER_PORT).toInt(),
-                    this);
-        QObject::connect(connManager, &RequestManager::configRequestFinished,
-                         this, &WndMain::configReplyFinished);
-        QObject::connect(connManager, &RequestManager::currentRequestFinished,
-                         this, &WndMain::currentReplyFinished);
-        QObject::connect(connManager, &RequestManager::locationCoordinatesRequestFinished,
-                         this, &WndMain::locationCoordinatesReplyFinished);
-        QObject::connect(connManager, &RequestManager::sunsetSunriseTimesRequestFinished,
-                         this, &WndMain::sunsetSunriseReplyFinished);
+    if (!ConfigurationManager::instance().value(CONFIG_FIRST_CONFIG, false).toBool()) {
+        DlgConfiguration *dlgConfig = new DlgConfiguration(this);
+        if (dlgConfig->exec() != QDialog::Accepted) {
+            QMessageBox::critical(this, tr("Can't start application"), tr("The application" \
+                                  "must be fully configured before starting it."),
+                                  QMessageBox::Ok);
 
-        // Initiate procedure
-        fetchProcedure();
+            // Disable all buttons
+            ui->pbtnRefresh->setEnabled(false);
+
+            return;
+        }
     }
+
+    // Initiate procedure
+    fetchProcedure();
 }
 
 WndMain::~WndMain() {
@@ -46,6 +42,13 @@ WndMain::~WndMain() {
 
 void WndMain::fetchProcedure() {
     QEventLoop loop;
+
+    // Enable all buttons if needed
+    ui->pbtnRefresh->setEnabled(true);
+
+    // Initialize connection manager and connect signals, if needed
+    if (connManager == nullptr)
+        initConnectionManager();
 
     // Reset all UIs
     this->resetState();
@@ -59,11 +62,8 @@ void WndMain::fetchProcedure() {
     QObject::disconnect(configReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
 
     // Getting the configuration should work. If not, do not do anything else.
-    if (configReply->error() != QNetworkReply::NoError) {
-        QMessageBox::critical(this, tr("Configuration Error"), tr("Can not proceed."),
-                              QMessageBox::Ok);
+    if (configReply->error() != QNetworkReply::NoError)
         return;
-    }
 
     // Get current measurement
     connManager->getCurrentMeasurement();
@@ -156,6 +156,9 @@ void WndMain::configReplyFinished(QNetworkReply *reply) {
 
         // Save configuration
         ConfigurationManager::instance().setValue(CONFIG_SERVER_UNIT, results["units"].toString());
+        if (ConfigurationManager::instance().value(CONFIG_PREFERRED_UNIT).toString() == "")
+            ConfigurationManager::instance().setValue(CONFIG_PREFERRED_UNIT,
+                                                      results["units"].toString());
 
         // Check if the location has been changed.
         // If it did, set the flag and store new value.
@@ -324,4 +327,19 @@ void WndMain::paintEvent(QPaintEvent *ev) {
             painter.fillRect(ui->centralWidget->rect(), radialGrad);
         }
     }
+}
+
+void WndMain::initConnectionManager() {
+    connManager = new RequestManager(
+                ConfigurationManager::instance().value(CONFIG_SERVER_IP).toString(),
+                ConfigurationManager::instance().value(CONFIG_SERVER_PORT).toInt(),
+                this);
+    QObject::connect(connManager, &RequestManager::configRequestFinished,
+                     this, &WndMain::configReplyFinished);
+    QObject::connect(connManager, &RequestManager::currentRequestFinished,
+                     this, &WndMain::currentReplyFinished);
+    QObject::connect(connManager, &RequestManager::locationCoordinatesRequestFinished,
+                     this, &WndMain::locationCoordinatesReplyFinished);
+    QObject::connect(connManager, &RequestManager::sunsetSunriseTimesRequestFinished,
+                     this, &WndMain::sunsetSunriseReplyFinished);
 }

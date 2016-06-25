@@ -5,6 +5,7 @@
 #include <QSettings>
 #include <QMessageBox>
 
+#include "RequestManager.h"
 #include "ConfigurationConstants.h"
 #include "ConfigurationManager.h"
 

@@ -4,20 +4,14 @@
 MeasureDisplay::MeasureDisplay(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::MeasureDisplay),
-    _textColor(QApplication::palette().color(QPalette::WindowText))
-{
+    _textColor(QApplication::palette().color(QPalette::WindowText)) {
     ui->setupUi(this);
 
     // Set size policies
     ui->lblMeasurement->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-
-    // Check if we need to display humidity
-    ui->lblHumidity->setVisible(
-                ConfigurationManager::instance().value(CONFIG_SHOW_HUMIDITY).toBool());
 }
 
-MeasureDisplay::~MeasureDisplay()
-{
+MeasureDisplay::~MeasureDisplay() {
     delete ui;
 }
 
@@ -55,15 +49,19 @@ void MeasureDisplay::setMeasurementDetails(QDate date, float temperature, char u
     _humid = humidity;
     _measureDate = date.toString("dddd, dd MMMM yyyy");
     _measureUnit = unit;
+    double heatIndex = Utils::calculateHeatIndex(temperature, humidity);
 
     // Set texts
     ui->lblDate->setText(_measureDate);
     ui->lblMeasurement->setText(MEASUREMENT_DISPLAY_TEMPLATE.arg(_temp).arg(
                                                              QChar(unit).toUpper().toLatin1()));
+
     ui->lblHumidity->setText(HUMIDITY_DISPLAY_TEMPLATE.arg(_humid));
-    ui->lblFeelsLike->setText(FEELS_LIKE_DISPLAY_TEMPLATE.arg(
-                                  Utils::calculateHeatIndex(temperature,
-                                                            humidity)).arg(
+    ui->lblHumidity->setVisible(
+                ConfigurationManager::instance().value(CONFIG_SHOW_HUMIDITY).toBool());
+
+    ui->lblFeelsLike->setVisible(_temp != heatIndex);
+    ui->lblFeelsLike->setText(FEELS_LIKE_DISPLAY_TEMPLATE.arg(heatIndex).arg(
                                   QChar(unit).toUpper().toLatin1()));
 
     // Resize newly-created text
