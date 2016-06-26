@@ -1,7 +1,7 @@
 # rpiweatherd-qtclient
 A lightweight Qt-based client for [rpiweatherd](http://github.com/ronen25/rpiweatherd).
 
-[Screenshot here]
+![Screenshot](/res/rpiweatherd-qtclient-screen.png "Screenshot")
 
 ***
 
