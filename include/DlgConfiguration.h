@@ -28,18 +28,12 @@ public:
     // Utility Methods
     void showAboutTab(void);
 
-public slots:
-    void on_socket_error(QAbstractSocket::SocketError socketError);
-    void on_socket_connect();
-
 private slots:
     void on_pbtnAbputQt_clicked();
 
     void on_buttonBox_accepted();
 
     void on_buttonBox_rejected();
-
-    void on_pbtnTestConnection_clicked();
 
 private:
     // Properties
