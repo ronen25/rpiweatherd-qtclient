@@ -41,7 +41,7 @@ FORMS    += ui/WndMain.ui \
 QMAKE_CXXFLAGS += -std=c++11
 
 # Application version
-VERSION = 1.0.0
+VERSION = 1.0.1
 
 # Define the preprocessor macro to get the application version in our application.
 DEFINES += APPLICATION_VERSION=\\\"$$VERSION\\\"
