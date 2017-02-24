@@ -182,8 +182,22 @@ void WndMain::configReplyFinished(QNetworkReply *reply) {
 }
 
 void WndMain::currentReplyFinished(QNetworkReply *reply) {
+    float serverVersion;
+
     // Read the json object
     QJsonObject jsonObject = connManager->readJsonObject(reply);
+
+    // Check server version. If it exists, extract it from string.
+    QVariant sVersionVar = reply->header(QNetworkRequest::KnownHeaders::ServerHeader);
+    if (sVersionVar.isValid()) {
+        serverVersion = Utils::extractVersionFromServerHeader(sVersionVar.toString());
+        if (serverVersion == -1)
+            serverVersion = 1.0f; // Assume 1.0
+    }
+    else
+        serverVersion = 1.0f; // Assume 1.0
+
+    QString usedUnit = ConfigurationManager::instance().value(CONFIG_SERVER_UNIT).toString();
 
     // Check reply status
     if (!jsonObject.empty()) {
@@ -193,21 +207,20 @@ void WndMain::currentReplyFinished(QNetworkReply *reply) {
               humidity = results["humidity"].toDouble();
         char mUnit;
 
-        // Get temperature in Celsius, for humidex calculations.
-        float tempC = Utils::convertTemperatureIfNeeded(temperature,
-            ConfigurationManager::instance().value(CONFIG_SERVER_UNIT).toString(),
-            QString(RPIWEATHERD_UNITS_METRIC));
-
         // Get unit to use.
         QString strUnit = ConfigurationManager::instance().value(CONFIG_PREFERRED_UNIT).toString();
-        mUnit = Utils::unitDescriptionToUnitChar(strUnit);
+        if (serverVersion >= 1.1 && strUnit == "")
+            mUnit = 'f';
+        else
+            mUnit = Utils::unitDescriptionToUnitChar(strUnit);
 
         // Put measurement details in control.
         ui->wgMeasureDisplay->setMeasurementDetails(QDate::currentDate(),
-            Utils::convertTemperatureIfNeeded(temperature),
-            mUnit, humidity);
+            Utils::convertTemperatureIfNeeded(temperature, serverVersion),
+            mUnit, humidity, serverVersion);
 
         // Calculate humidex
+        float tempC = (temperature - 32.0) / 1.8;
         ui->wgIndexDisplay->setValue(Utils::calculateHumidex(tempC, humidity));
     }
     else {

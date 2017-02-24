@@ -43,13 +43,13 @@ void MeasureDisplay::resetState() {
 }
 
 void MeasureDisplay::setMeasurementDetails(QDate date, float temperature, char unit,
-                                           float humidity) {
+                                           float humidity, float serverVersion) {
     // Set all details
     _temp = temperature;
     _humid = humidity;
     _measureDate = date.toString("dddd, dd MMMM yyyy");
     _measureUnit = unit;
-    double heatIndex = Utils::calculateHeatIndex(temperature, humidity);
+    double heatIndex = Utils::calculateHeatIndex(temperature, humidity, serverVersion);
 
     // Set texts
     ui->lblDate->setText(_measureDate);

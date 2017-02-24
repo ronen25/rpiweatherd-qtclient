@@ -27,7 +27,7 @@ public:
 
 public slots:
     // Setter for all properties
-    void setMeasurementDetails(QDate date, float temperature, char unit, float humidity);
+    void setMeasurementDetails(QDate date, float temperature, char unit, float humidity, float serverVersion);
 
     // Color setter
     void setTextColor(const QColor &color);

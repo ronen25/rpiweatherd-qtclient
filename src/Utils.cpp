@@ -11,11 +11,12 @@ double Utils::calculateHumidex(float temp, float humid) {
 }
 
 // Source: http://www.engineeringtoolbox.com/heat-index-d_935.html
-double Utils::calculateHeatIndex(float temp, float humid) {
+double Utils::calculateHeatIndex(float temp, float humid, float serverVersion) {
     // Check if we need conversion to farenheit
     float tempF = Utils::convertTemperatureIfNeeded(temp,
         ConfigurationManager::instance().value(CONFIG_PREFERRED_UNIT).toString(),
-        QString(RPIWEATHERD_UNITS_IMPERIAL));
+        QString(RPIWEATHERD_UNITS_IMPERIAL),
+        serverVersion);
 
     // Calculation only applies for tempF > 57 F
     if (tempF < 57)
@@ -39,20 +40,32 @@ double Utils::calculateHeatIndex(float temp, float humid) {
 
     // Convert back, round and return
     result = Utils::convertTemperatureIfNeeded(result, QString(RPIWEATHERD_UNITS_IMPERIAL),
-        ConfigurationManager::instance().value(CONFIG_PREFERRED_UNIT).toString());
+        ConfigurationManager::instance().value(CONFIG_PREFERRED_UNIT).toString(),
+        serverVersion);
 
     return round(result * 100) / 100;
 }
 
-double Utils::convertTemperatureIfNeeded(float temp) {
+double Utils::convertTemperatureIfNeeded(float temp, float serverVersion) {
+    QString sourceUnit;
+
     // Get source and destination units from configuration
-    QString sourceUnit = ConfigurationManager::instance().value(CONFIG_SERVER_UNIT).toString();
+    if (serverVersion < 1.1)
+        sourceUnit = ConfigurationManager::instance().value(CONFIG_SERVER_UNIT).toString();
+    else
+        sourceUnit = RPIWEATHERD_UNITS_IMPERIAL;
+
     QString targetUnit = ConfigurationManager::instance().value(CONFIG_PREFERRED_UNIT).toString();
 
-    return Utils::convertTemperatureIfNeeded(temp, sourceUnit, targetUnit);
+    return Utils::convertTemperatureIfNeeded(temp, sourceUnit, targetUnit, serverVersion);
 }
 
-double Utils::convertTemperatureIfNeeded(float temp, QString sourceUnit, QString targetUnit) {
+double Utils::convertTemperatureIfNeeded(float temp, QString sourceUnit, QString targetUnit,
+                                         float serverVersion) {
+    // If server version >= 1.1 and there is no source unit, set it accordingly.
+    if (serverVersion >= 1.1 && sourceUnit == "")
+        sourceUnit = RPIWEATHERD_UNITS_IMPERIAL;
+
     // If the source and the destination unit are the same, do no conversion.
     if (sourceUnit == targetUnit)
         return temp;
@@ -82,4 +95,22 @@ QString Utils::buildCoordinatesString(QString location, double lat, double lng) 
     QString ret = "%1;%2;%3";
 
     return ret.arg(location).arg(lat).arg(lng);
+}
+
+float Utils::extractVersionFromServerHeader(const QString &header) {
+    float result;
+    bool success = false;
+
+    // Split by '/'
+    auto parts = header.split("/");
+
+    // Attempt to convert the second part to float
+    if (parts.length() < 2)
+        return -1;
+
+    result = parts[1].toFloat(&success);
+    if (!success)
+        return -1;
+
+    return result;
 }
