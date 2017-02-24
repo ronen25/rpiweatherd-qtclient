@@ -34,8 +34,7 @@ If you do not have a 64-bit system, you will need to compile the program from so
 2) Change directory and compile:
 ```
     $ cd rpiweatherd-qtclient
-    $ qmake -project
-    $ qmake
+    $ qmake ./rpiweatherd-qtclient.pro
     $ make
 ```
 
